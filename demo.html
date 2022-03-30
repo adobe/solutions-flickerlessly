@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Flickerlessly Demo</title>
+  <style>
+      /* Some basic page style */
+      h1,h2,h3,p{padding: 5px;}
+      .messages{ background-color: lightcoral; width: 45%; float: right;}
+      .info{ background-color: lightgray; width: 45%; display: block;}
+      textarea { display: inline-block; font-family: monospace; font-size: 14px; width: 98%; height: 135px; border: solid 2px #5882FA;}
+  </style>
+  <script src="flickerlessly.min.js"></script>
+  <script>
+    
+    function callback(el, log){
+        var count = el.parentNode.childNodes.length;
+        var messages = el.parentNode.parentNode.querySelector(".messages");
+        messages.innerHTML = "<h3>Messages:</h3><p>Detected a new element <strong>" + el.innerHTML + "</strong></p>";
+        log("Element detected", el);
+    }
+    
+    Flickerlessly.onReady({
+        selector: '.demo.one .my-dynamic-element', 
+        success: function(el, log){
+            callback(el, log);
+        },
+        persist: true
+    });
+    Flickerlessly.onReady({
+        selector: '.demo.two .my-dynamic-element', 
+        success: function(el, log){
+            callback(el, log);
+        },
+    });
+
+    function addNewElement(id){
+        var ul = document.getElementById(id);
+        var li = document.createElement("LI");
+        var count = ul.childNodes.length;
+        li.innerHTML = "Element " + (count+1);
+        li.className = "my-dynamic-element";
+        ul.appendChild(li);
+    }
+    
+  </script>
+</head>
+<body>
+  
+  <h1>Flickerlessly Demo</h1>
+
+  <p>Flickerlessly is a tiny JavaScript library that helps detecting any specified HTML element as soon as it appears on the page. 
+      It is one of the most performant ways for DOM element detection thanks to the `keyframes` animation technique. 
+      This approach successfully replaces the DOM polling with `setTimeout`/`setInterval` that drains device resources 
+      or `MutationObserver` that has browser limitations and may be a less performant solution. 
+       Read more in <a href="README.md">README.md</a></p>
+
+    <div class="demo one">
+        <h2>Detecting DOM Element Continuesly</h2>
+        <div class="messages">
+            <h3>No Messages</h3>
+        </div>
+        <p class="info">Flickerlessly is loaded on this page and listens to any element with CSS selector ".my-dynamic-element" to appear on the page. 
+                Once element with such a selector appears, there is a callback function that reads this element's inner HTML and displays it in the "Messages" box.<br/>
+                <textarea>
+Flickerlessly.onReady({
+    selector:'.my-dynamic-element', 
+    success:function(el, log){
+        callback(el, log);
+        log("Element detected", el);
+    },
+    persist: true
+});
+                </textarea>
+            </p>
+        <p>Click button below to add element with class "my-dynamic-element"</p>
+        <button onclick="addNewElement('newElements1')">Add New Element</button>
+        <ul id="newElements1"></ul>
+    </div>
+    <div class="demo two">
+        <h2>Detecting DOM Element Once</h2>
+        <div class="messages">
+            <h3>No Messages</h3>
+        </div>
+        <p class="info">Flickerlessly is loaded on this page and listens to any element with CSS selector ".my-dynamic-element" to appear on the page. 
+                Once element with such a selector appears, there is a callback function that reads this element's inner HTML and displays it in the "Messages" box.<br/>
+                <textarea>
+Flickerlessly.onReady({
+    selector:'.my-dynamic-element', 
+    success:function(el, log){
+        callback(el, log);
+        log("Element detected", el);
+    }
+});
+                </textarea>
+            </p>
+        <p>Click button below to add element with class "my-dynamic-element"</p>
+        <button onclick="addNewElement('newElements2')">Add New Element</button>
+        <ul id="newElements2"></ul>
+    </div>
+
+</body>
+</html>
