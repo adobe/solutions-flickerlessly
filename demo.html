@@ -1,103 +1,205 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Flickerlessly Demo</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flickerlessly Shadow DOM Test</title>
   <style>
-      /* Some basic page style */
-      h1,h2,h3,p{padding: 5px;}
-      .messages{ background-color: lightcoral; width: 45%; float: right;}
-      .info{ background-color: lightgray; width: 45%; display: block;}
-      textarea { display: inline-block; font-family: monospace; font-size: 14px; width: 98%; height: 135px; border: solid 2px #5882FA;}
+    body { font-family: Arial, sans-serif; margin: 24px; line-height: 1.45; background: #f7f7f9; color: #222; }
+    h1, h2, h3 { margin: 0 0 12px; }
+    p { margin: 0 0 12px; }
+    code { background: #f0f0f3; padding: 2px 6px; border-radius: 6px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    button { border: 1px solid #bbb; background: #fff; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+    button:hover { background: #f0f0f0; }
+    .demo-area { min-height: 90px; border: 1px dashed #bbb; border-radius: 10px; padding: 12px; margin-top: 12px; background: #fafafa; }
+    .demo-price, .demo-cta, .demo-box { margin: 8px 0; padding: 10px 12px; border-radius: 10px; display: inline-block; }
+    .demo-price { background: #e8f3ff; border: 1px solid #a9cdf7; }
+    .demo-cta { background: #ecffe8; border: 1px solid #9fd49a; }
+    .demo-box { background: #fff4dd; border: 1px solid #e0c27a; }
+    .note { font-size: 13px; color: #555; }
+    #log { background: #111; color: #d7ffd7; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; min-height: 260px; max-height: 520px; overflow: auto; border-radius: 12px; padding: 14px; margin-top: 12px; }
+    .ok { color: #1d7f43; }
+    .bad { color: #b42318; }
   </style>
-  <script src="flickerlessly.min.js"></script>
-  <script>
-    
-    function callback(el, log){
-        var count = el.parentNode.childNodes.length;
-        var messages = el.parentNode.parentNode.querySelector(".messages");
-        messages.innerHTML = "<h3>Messages:</h3><p>Detected a new element <strong>" + el.innerHTML + "</strong></p>";
-        log("Element detected", el);
-    }
-    
-    Flickerlessly.onReady({
-        selector: '.demo.one .my-dynamic-element', 
-        success: function(el, log){
-            callback(el, log);
-        },
-        persist: true
-    });
-    Flickerlessly.onReady({
-        selector: '.demo.two .my-dynamic-element', 
-        success: function(el, log){
-            callback(el, log);
-        },
-    });
-
-    function addNewElement(id){
-        var ul = document.getElementById(id);
-        var li = document.createElement("LI");
-        var count = ul.childNodes.length;
-        li.innerHTML = "Element " + (count+1);
-        li.className = "my-dynamic-element";
-        ul.appendChild(li);
-    }
-    
-  </script>
 </head>
 <body>
-  
-  <h1>Flickerlessly Demo</h1>
-
+  <h1>Flickerlessly Shadow DOM Test</h1>
   <p>Flickerlessly is a tiny JavaScript library that helps detecting any specified HTML element as soon as it appears on the page. 
       It is one of the most performant ways for DOM element detection thanks to the `keyframes` animation technique. 
       This approach successfully replaces the DOM polling with `setTimeout`/`setInterval` that drains device resources 
       or `MutationObserver` that has browser limitations and may be a less performant solution. 
        Read more in <a href="README.md">README.md</a></p>
+  <p>This demo uses the lightweight animation-based version with optional <code>&gt;&gt;&gt;</code> host-chain syntax.</p>
+  <p class="note">Append <code>?Debug=1</code> to the URL to see Flickerlessly debug logs in the console.</p>
 
-    <div class="demo one">
-        <h2>Detecting DOM Element Continuesly</h2>
-        <div class="messages">
-            <h3>No Messages</h3>
-        </div>
-        <p class="info">Flickerlessly is loaded on this page and listens to any element with CSS selector ".my-dynamic-element" to appear on the page. 
-                Once element with such a selector appears, there is a callback function that reads this element's inner HTML and displays it in the "Messages" box.<br/>
-                <textarea>
-Flickerlessly.onReady({
-    selector:'.my-dynamic-element', 
-    success:function(el, log){
-        callback(el, log);
-        log("Element detected", el);
-    },
-    persist: true
-});
-                </textarea>
-            </p>
-        <p>Click button below to add element with class "my-dynamic-element"</p>
-        <button onclick="addNewElement('newElements1')">Add New Element</button>
-        <ul id="newElements1"></ul>
+  <div class="grid">
+    <section class="card">
+      <h2>Light DOM</h2>
+      <p>Regular document-level matching.</p>
+      <div class="controls">
+        <button id="add-light-price">Add .demo-price</button>
+        <button id="add-light-cta">Add .demo-cta</button>
+        <button id="add-light-both">Add both</button>
+      </div>
+      <div class="demo-area" id="light-area"></div>
+    </section>
+
+    <section class="card">
+      <h2>Single Shadow Root</h2>
+      <p>Root-local selector works inside one shadow root.</p>
+      <div class="controls">
+        <button id="add-shadow-price">Add .demo-price</button>
+        <button id="add-shadow-cta">Add .demo-cta</button>
+        <button id="add-shadow-both">Add both</button>
+      </div>
+      <div class="demo-area" id="shadow-preview">Shadow host mounted below.</div>
+      <div id="shadow-host"></div>
+    </section>
+
+    <section class="card">
+      <h2>Nested Shadow Roots</h2>
+      <p>This includes both a working pierced example and a failing plain selector comparison.</p>
+      <div class="controls">
+        <button id="add-nested-slot">Add #nested-slot</button>
+        <button id="add-nested-price">Add .demo-price</button>
+        <button id="add-nested-all">Add all nested items</button>
+      </div>
+      <div class="demo-area" id="nested-preview">Nested hosts mounted below.</div>
+      <div id="outer-nested-host"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px;">
+    <h2>Registered watchers</h2>
+    <p><span class="ok">Working pierced watcher:</span> <code>#outer-nested-host >>> #inner-nested-host >>> #nested-slot</code></p>
+    <p><span class="bad">Intentionally failing plain selector:</span> <code>#outer-nested-host #inner-nested-host #nested-slot</code></p>
+    <p class="note">The failing selector is included so you can see why plain CSS cannot cross shadow boundaries, while <code>&gt;&gt;&gt;</code> can.</p>
+  </section>
+
+  <section class="card" style="margin-top:16px;">
+    <h2>Event log</h2>
+    <div class="controls">
+      <button id="clear-log">Clear log</button>
+      <button id="reset-demo">Reset demo areas</button>
+      <button id="rerun-watchers">Re-register watchers</button>
     </div>
-    <div class="demo two">
-        <h2>Detecting DOM Element Once</h2>
-        <div class="messages">
-            <h3>No Messages</h3>
-        </div>
-        <p class="info">Flickerlessly is loaded on this page and listens to any element with CSS selector ".my-dynamic-element" to appear on the page. 
-                Once element with such a selector appears, there is a callback function that reads this element's inner HTML and displays it in the "Messages" box.<br/>
-                <textarea>
-Flickerlessly.onReady({
-    selector:'.my-dynamic-element', 
-    success:function(el, log){
-        callback(el, log);
-        log("Element detected", el);
+    <div id="log"></div>
+  </section>
+
+  <script src="flickerlessly.min.js"></script>
+
+  <script>
+    var logEl = document.getElementById('log');
+    function writeLog(msg) {
+      var line = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+      logEl.textContent += line + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(line);
     }
-});
-                </textarea>
-            </p>
-        <p>Click button below to add element with class "my-dynamic-element"</p>
-        <button onclick="addNewElement('newElements2')">Add New Element</button>
-        <ul id="newElements2"></ul>
-    </div>
 
+    function rootLabel(el) {
+      var root = el.getRootNode();
+      if (root === document) return 'document';
+      if (root && root.host && root.host.id) return 'shadowRoot(host=#' + root.host.id + ')';
+      return 'shadowRoot';
+    }
+
+    var shadowHost = document.getElementById('shadow-host');
+    var shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+    shadowRoot.innerHTML = '<div class="demo-area"><div class="demo-box">Shadow root content area</div></div>';
+
+    var outerHost = document.getElementById('outer-nested-host');
+    var outerRoot = outerHost.attachShadow({ mode: 'open' });
+    outerRoot.innerHTML = '<div class="demo-area"><div class="demo-box">Outer shadow root</div><div id="inner-nested-host"></div></div>';
+    var innerHost = outerRoot.getElementById('inner-nested-host');
+    var innerRoot = innerHost.attachShadow({ mode: 'open' });
+    innerRoot.innerHTML = '<div class="demo-area"><div class="demo-box">Inner shadow root</div></div>';
+
+    function registerWatchers() {
+      Flickerlessly._reset();
+
+      Flickerlessly.onReady(
+        {
+          selector: '.demo-price',
+          shadow: true,
+          persist: true,
+          success: function (el) {
+            writeLog('Matched .demo-price in ' + rootLabel(el));
+          }
+        },
+        {
+          selector: '.demo-cta',
+          shadow: true,
+          persist: true,
+          success: function (el) {
+            writeLog('Matched .demo-cta in ' + rootLabel(el));
+          }
+        },
+        {
+          selector: '#outer-nested-host >>> #inner-nested-host >>> #nested-slot',
+          shadow: true,
+          persist: true,
+          success: function (el) {
+            writeLog('PIERCED MATCH worked: #outer-nested-host >>> #inner-nested-host >>> #nested-slot in ' + rootLabel(el));
+          }
+        },
+        {
+          selector: '#outer-nested-host #inner-nested-host #nested-slot',
+          shadow: true,
+          persist: true,
+          success: function (el) {
+            writeLog('Unexpected plain selector match: ' + el.id + ' in ' + rootLabel(el));
+          }
+        }
+      );
+
+      writeLog('Watchers registered.');
+    }
+
+    function addEl(target, html) {
+      var wrap = document.createElement('div');
+      wrap.innerHTML = html;
+      while (wrap.firstChild) target.appendChild(wrap.firstChild);
+    }
+
+    function addLightPrice() { addEl(document.getElementById('light-area'), '<div class="demo-price">Light DOM .demo-price</div>'); }
+    function addLightCta() { addEl(document.getElementById('light-area'), '<button class="demo-cta">Light DOM .demo-cta</button>'); }
+
+    function addShadowPrice() { addEl(shadowRoot.querySelector('.demo-area'), '<div class="demo-price">Shadow .demo-price</div>'); }
+    function addShadowCta() { addEl(shadowRoot.querySelector('.demo-area'), '<button class="demo-cta">Shadow .demo-cta</button>'); }
+
+    function addNestedSlot() { addEl(innerRoot.querySelector('.demo-area'), '<div id="nested-slot" class="demo-box">Nested slot target</div>'); }
+    function addNestedPrice() { addEl(innerRoot.querySelector('.demo-area'), '<div class="demo-price">Nested .demo-price</div>'); }
+
+    document.getElementById('add-light-price').onclick = addLightPrice;
+    document.getElementById('add-light-cta').onclick = addLightCta;
+    document.getElementById('add-light-both').onclick = function () { addLightPrice(); addLightCta(); };
+
+    document.getElementById('add-shadow-price').onclick = addShadowPrice;
+    document.getElementById('add-shadow-cta').onclick = addShadowCta;
+    document.getElementById('add-shadow-both').onclick = function () { addShadowPrice(); addShadowCta(); };
+
+    document.getElementById('add-nested-slot').onclick = addNestedSlot;
+    document.getElementById('add-nested-price').onclick = addNestedPrice;
+    document.getElementById('add-nested-all').onclick = function () { addNestedSlot(); addNestedPrice(); addEl(innerRoot.querySelector('.demo-area'), '<button class="demo-cta">Nested .demo-cta</button>'); };
+
+    document.getElementById('clear-log').onclick = function () { logEl.textContent = ''; };
+    document.getElementById('reset-demo').onclick = function () {
+      document.getElementById('light-area').innerHTML = '';
+      shadowRoot.innerHTML = '<div class="demo-area"><div class="demo-box">Shadow root content area</div></div>';
+      outerRoot.innerHTML = '<div class="demo-area"><div class="demo-box">Outer shadow root</div><div id="inner-nested-host"></div></div>';
+      innerHost = outerRoot.getElementById('inner-nested-host');
+      innerRoot = innerHost.attachShadow({ mode: 'open' });
+      innerRoot.innerHTML = '<div class="demo-area"><div class="demo-box">Inner shadow root</div></div>';
+      writeLog('Demo areas reset. Re-registering watchers.');
+      registerWatchers();
+    };
+    document.getElementById('rerun-watchers').onclick = registerWatchers;
+
+    registerWatchers();
+  </script>
 </body>
 </html>
